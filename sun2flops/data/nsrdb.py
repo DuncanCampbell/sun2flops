@@ -16,15 +16,23 @@ REQUIRED_COLUMNS = ["ghi", "dni", "dhi", "temp_air", "wind_speed"]
 def _resolve_nsrdb_fetcher():
     if hasattr(pvlib.iotools, "get_nsrdb"):
         return pvlib.iotools.get_nsrdb
+    if hasattr(pvlib.iotools, "get_psm4"):
+        return pvlib.iotools.get_psm4
     if hasattr(pvlib.iotools, "get_psm3"):
         return pvlib.iotools.get_psm3
     try:
+        from pvlib.iotools.psm4 import get_psm4  # type: ignore
+    except Exception:
+        get_psm4 = None
+    try:
         from pvlib.iotools.psm3 import get_psm3  # type: ignore
     except Exception as exc:  # pragma: no cover - import path depends on pvlib version
+        if get_psm4 is not None:
+            return get_psm4
         raise ImportError(
             "pvlib does not provide NSRDB download helpers. "
-            "Install a pvlib release that exposes get_nsrdb or get_psm3, "
-            "or use a different weather data source."
+            "Install a pvlib release that exposes get_nsrdb, get_psm4, "
+            "or get_psm3, or use a different weather data source."
         ) from exc
     return get_psm3
 
@@ -68,7 +76,7 @@ def fetch_nsrdb_year(
     weather: WeatherConfig,
 ) -> tuple[pd.DataFrame, dict]:
     """
-    Fetch one year of NSRDB data at 30-min resolution via pvlib helpers.
+    Fetch one year of NSRDB data at 30-min resolution via pvlib helpers (PSM4/PSM3).
     Cache to parquet/csv in weather.cache_dir.
 
     Return:
