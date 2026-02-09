@@ -51,7 +51,8 @@ See `notebooks/colab_driver.ipynb` for a full workflow.
 ## Colab quick start
 
 1. Open `notebooks/colab_driver.ipynb` in Colab.
-2. Update the `REPO_DIR` variable in the notebook to point to the folder that contains `pyproject.toml`.
-3. Run the install cell (`pip install -e .`) and continue through the notebook.
+2. Update the `REPO_DIR` variable in the notebook to point to the local folder that contains `pyproject.toml` (not a URL).
+3. Run the install cell (it upgrades pvlib and runs `pip install -e .`) and continue through the notebook.
+4. Set your NSRDB API key and email in the notebook cell before fetching weather data.
 
-If you connected Colab to this repo through GitHub and `pyproject.toml` is not found, clone the repo in Colab or update `REPO_DIR` to the location where Colab placed the repo.
+If you connected Colab to this repo through GitHub and `pyproject.toml` is not found, `git clone` the repo in Colab (for example, into `/content/sun2flops`) and set `REPO_DIR` to that local folder.
