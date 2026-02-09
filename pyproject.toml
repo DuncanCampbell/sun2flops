@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sun2flops"
+version = "0.1.0"
+description = "Sunshine to PV to battery to GPU to FLOPs simulation package."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Sun2FLOPs"}]
+
+dependencies = [
+  "numpy",
+  "pandas",
+  "pvlib",
+  "matplotlib",
+]
+
+[project.optional-dependencies]
+parquet = ["pyarrow"]
+validation = ["pydantic"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sun2flops*"]
