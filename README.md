@@ -47,3 +47,11 @@ print(metrics)
 ```
 
 See `notebooks/colab_driver.ipynb` for a full workflow.
+
+## Colab quick start
+
+1. Open `notebooks/colab_driver.ipynb` in Colab.
+2. Update the `REPO_DIR` variable in the notebook to point to the folder that contains `pyproject.toml`.
+3. Run the install cell (`pip install -e .`) and continue through the notebook.
+
+If you connected Colab to this repo through GitHub and `pyproject.toml` is not found, clone the repo in Colab or update `REPO_DIR` to the location where Colab placed the repo.
