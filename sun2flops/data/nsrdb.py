@@ -14,12 +14,17 @@ REQUIRED_COLUMNS = ["ghi", "dni", "dhi", "temp_air", "wind_speed"]
 
 
 def _resolve_nsrdb_fetcher():
+    # pvlib >= 0.15: granular NSRDB helpers
+    if hasattr(pvlib.iotools, "get_nsrdb_psm4_full_disc"):
+        return pvlib.iotools.get_nsrdb_psm4_full_disc
+    # pvlib 0.11-0.14 names
     if hasattr(pvlib.iotools, "get_nsrdb"):
         return pvlib.iotools.get_nsrdb
     if hasattr(pvlib.iotools, "get_psm4"):
         return pvlib.iotools.get_psm4
     if hasattr(pvlib.iotools, "get_psm3"):
         return pvlib.iotools.get_psm3
+    # Older pvlib: try direct sub-module imports
     try:
         from pvlib.iotools.psm4 import get_psm4  # type: ignore
     except Exception:
@@ -31,8 +36,9 @@ def _resolve_nsrdb_fetcher():
             return get_psm4
         raise ImportError(
             "pvlib does not provide NSRDB download helpers. "
-            "Install a pvlib release that exposes get_nsrdb, get_psm4, "
-            "or get_psm3, or use a different weather data source."
+            "Install a pvlib release that exposes get_nsrdb_psm4_full_disc, "
+            "get_nsrdb, get_psm4, or get_psm3, or use a different weather "
+            "data source."
         ) from exc
     return get_psm3
 
@@ -100,8 +106,10 @@ def fetch_nsrdb_year(
         fetcher,
         latitude=site.latitude,
         longitude=site.longitude,
-        names=year,
-        interval=weather.interval_min,
+        names=year,                       # pvlib < 0.15
+        year=year,                        # pvlib >= 0.15
+        interval=weather.interval_min,    # pvlib < 0.15
+        time_step=weather.interval_min,   # pvlib >= 0.15
         leap_day=weather.leap_day,
         api_key=api_key,
         email=email,
