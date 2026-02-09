@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import inspect
 import os
 import pandas as pd
 import pvlib
@@ -10,6 +11,28 @@ from sun2flops.data.io import load_dataframe, preferred_extension, save_datafram
 
 
 REQUIRED_COLUMNS = ["ghi", "dni", "dhi", "temp_air", "wind_speed"]
+
+
+def _resolve_nsrdb_fetcher():
+    if hasattr(pvlib.iotools, "get_nsrdb"):
+        return pvlib.iotools.get_nsrdb
+    if hasattr(pvlib.iotools, "get_psm3"):
+        return pvlib.iotools.get_psm3
+    try:
+        from pvlib.iotools.psm3 import get_psm3  # type: ignore
+    except Exception as exc:  # pragma: no cover - import path depends on pvlib version
+        raise ImportError(
+            "pvlib does not provide NSRDB download helpers. "
+            "Install a pvlib release that exposes get_nsrdb or get_psm3, "
+            "or use a different weather data source."
+        ) from exc
+    return get_psm3
+
+
+def _call_nsrdb_fetcher(fetcher, **kwargs):
+    signature = inspect.signature(fetcher)
+    filtered = {key: value for key, value in kwargs.items() if key in signature.parameters}
+    return fetcher(**filtered)
 
 
 def _cache_key(site: SiteConfig, year: int, weather: WeatherConfig) -> str:
@@ -45,7 +68,7 @@ def fetch_nsrdb_year(
     weather: WeatherConfig,
 ) -> tuple[pd.DataFrame, dict]:
     """
-    Fetch one year of NSRDB PSM3 at 30-min resolution via pvlib.iotools.get_psm3.
+    Fetch one year of NSRDB data at 30-min resolution via pvlib helpers.
     Cache to parquet/csv in weather.cache_dir.
 
     Return:
@@ -64,7 +87,9 @@ def fetch_nsrdb_year(
     if not api_key or not email:
         raise ValueError("NSRDB api_key/email missing; set in config or env")
 
-    df, meta = pvlib.iotools.get_psm3(
+    fetcher = _resolve_nsrdb_fetcher()
+    df, meta = _call_nsrdb_fetcher(
+        fetcher,
         latitude=site.latitude,
         longitude=site.longitude,
         names=year,
